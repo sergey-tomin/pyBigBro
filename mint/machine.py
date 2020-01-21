@@ -59,8 +59,8 @@ class Machine:
             y = orbit_y[:, 1].astype(np.float)
             xy = np.append(x, y)
 
-            names_x = [name + ".X" for name in orbit_x[:, 4]]
-            names_y = [name + ".Y" for name in orbit_y[:, 4]]
+            names_x =  [name + ".X" for name in orbit_x[:, 4]]
+            names_y =  [name + ".Y" for name in orbit_y[:, 4]]
             names = np.append(names_x, names_y)
             data = np.append(data, xy)
             all_names = np.append(all_names, names)
@@ -154,12 +154,14 @@ class Machine:
         print(len(data), len(all_names))
         data_dict = {}
         for name, d in zip(all_names, data):
+            #print(name)
             data_dict[name] = [d]
             
-        
+        #print(data_dict)
         #data = np.array(data)
         #df = pd.DataFrame(data=data.reshape((1, len(data))), columns=all_names)
-        df = pd.DataFrame.from_dict(data_dict)
+        df = pd.DataFrame(data_dict, columns=data_dict.keys())
+        #df = pd.DataFrame.from_dict(data_dict)
         #df = pd.DataFrame(data=np.zeros((1, len(data))), columns=list(all_names))
         #df.iloc[0] = Series()
         #df = df.apply(pd.to_numeric, errors='ignore')

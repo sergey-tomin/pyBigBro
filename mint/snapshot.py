@@ -159,12 +159,10 @@ class SnapshotDB:
         return self.df
 
     def analyse(self):
-        print(self.df.columns)
         orbit_sections = {}
         magnet_sections = {}
         channels = []
         for col in self.df.columns:
-            print(col)
             if "/" not in col and col != "timestamp":
 
                 if ".X" in col or ".Y" in col:
@@ -191,10 +189,6 @@ class SnapshotDB:
                 print(x_plane)
                 y_plane = [name for name in names if sec + ".Y" in name]
                 pos = [name.split(".")[-3] for name in x_plane]
-                indx = np.argsort(pos)
-                print(indx)
-                x_plane = np.array(x_plane)[indx]
-                print(x_plane)
                 #for plane in [".X.", ".Y."]:
                 #    for name in names:
                 #        parts = name.split(".")
