@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import os
 
+
 class Snapshot():
     def __init__(self):
         self.sase_sections = ["SA1", "SA2", "SA3"]
@@ -46,16 +47,28 @@ class Snapshot():
         self.image_folders.append(folder)
     
     def add_orbit_section(self, sec_id, tol=0.001, track=True):
+        if sec_id in self.orbit_sections:
+            print("WARNING: channel is already added")
+            return
         self.orbit_sections[sec_id] = {"id": sec_id, "tol": tol, "track": track}
 
     def add_magnet_section(self, sec_id, tol=0.001, track=True):
+        if sec_id in self.magnet_sections:
+            print("WARNING: channel is already added")
+            return
         self.magnet_sections[sec_id] = {"id": sec_id, "tol": tol, "track": track}
 
     def add_phase_shifter_section(self, sec_id, tol=0.001, track=True):
+        if sec_id in self.phase_shifter_sections:
+            print("WARNING: channel is already added")
+            return
         if sec_id in self.sase_sections:
             self.phase_shifter_sections[sec_id] = {"id": sec_id, "tol": tol, "track": track}
 
     def add_undulator(self, sec_id, tol=0.001, track=True):
+        if sec_id in self.sase_sections:
+            print("WARNING: channel is already added")
+            return
         if sec_id in self.sase_sections:
             self.undulators[sec_id] = {"id": sec_id, "tol": tol, "track": track}
 
@@ -66,8 +79,7 @@ class Snapshot():
         self.channels.append(channel)
         self.channels_tol.append(tol)
         self.channels_track.append(track)
-        
-    
+
     def is_diff(self, snap1, snap2):
         diff = False
         for i, ch in enumerate(self.channels):
@@ -143,7 +155,53 @@ class SnapshotDB:
         self.df.to_pickle(filename)
     
     def load(self):
-        return pd.read_pickle(self.filename)
+        self.df = pd.read_pickle(self.filename)
+        return self.df
+
+    def analyse(self):
+        print(self.df.columns)
+        orbit_sections = {}
+        magnet_sections = {}
+        channels = []
+        for col in self.df.columns:
+            print(col)
+            if "/" not in col and col != "timestamp":
+
+                if ".X" in col or ".Y" in col:
+                    #print(col)
+                    sec_id = col.split(".")[-2]
+                    if sec_id not in orbit_sections:
+                        orbit_sections[sec_id] = [col]
+                    else:
+                        orbit_sections[sec_id].append(col)
+                else:
+                    sec_id = col.split(".")[-1]
+                    if sec_id not in magnet_sections:
+                        magnet_sections[sec_id] = [col]
+                    else:
+                        magnet_sections[sec_id].append(col)
+            else:
+                channels.append(col)
+
+        if len(orbit_sections) > 0:
+
+            for sec in orbit_sections:
+                names = orbit_sections[sec]
+                x_plane = [name for name in names if sec + ".X" in name]
+                print(x_plane)
+                y_plane = [name for name in names if sec + ".Y" in name]
+                pos = [name.split(".")[-3] for name in x_plane]
+                indx = np.argsort(pos)
+                print(indx)
+                x_plane = np.array(x_plane)[indx]
+                print(x_plane)
+                #for plane in [".X.", ".Y."]:
+                #    for name in names:
+                #        parts = name.split(".")
+        print(orbit_sections)
+        #print(magnet_sections)
+        #print(channels)
+
     
     def __str__(self):
         return self.df.__str__()

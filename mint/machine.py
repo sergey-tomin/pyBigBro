@@ -44,7 +44,7 @@ class Machine:
                 alarm_status.append(False)
         if np.array(alarm_status).any():
             return True
-        return False
+        return True
 
     def get_orbit(self, data, all_names):
         for sec_id in self.snapshot.orbit_sections:
@@ -59,8 +59,8 @@ class Machine:
             y = orbit_y[:, 1].astype(np.float)
             xy = np.append(x, y)
 
-            names_x =  [name + ".X" for name in orbit_x[:, 4]]
-            names_y =  [name + ".Y" for name in orbit_y[:, 4]]
+            names_x = [name + ".X" for name in orbit_x[:, 4]]
+            names_y = [name + ".Y" for name in orbit_y[:, 4]]
             names = np.append(names_x, names_y)
             data = np.append(data, xy)
             all_names = np.append(all_names, names)
@@ -81,7 +81,7 @@ class Machine:
         return data, all_names
 
     def get_channels(self, data, all_names):
-
+        data = list(data)
         for ch in self.snapshot.channels:
             try:
                 val = self.mi.get_value(ch)
@@ -89,7 +89,12 @@ class Machine:
                 print("id: " + ch + " ERROR: " + str(e))
                 val = np.nan
             #print(ch, type(val))
-            data = np.append(data, val)
+            #if np.size(val) > 1:
+            #    data = np.append(data, np.array([val], dtype=object))
+            #else:
+            #    data = list(data)
+            #    data = np.append(data, val)
+            data.append(val)
             all_names = np.append(all_names, ch)
         return data, all_names
     
@@ -117,8 +122,9 @@ class Machine:
             else:
                 path = None
             #print(data)
-            data = list(data)
-            data = np.append(data, np.array([path], dtype=object))
+            #data = list(data)
+            #data = np.append(data, np.array([path], dtype=object))
+            data.append(path)
             all_names = np.append(all_names, ch)
         return data, all_names
     
@@ -145,8 +151,17 @@ class Machine:
         if len(data) == 0:
             print("get_images bad")
             return None
-        #print(data)
-        df = pd.DataFrame(data=data.reshape((1, len(data))), columns=all_names)
+        print(len(data), len(all_names))
+        data_dict = {}
+        for name, d in zip(all_names, data):
+            data_dict[name] = [d]
+            
+        
+        #data = np.array(data)
+        #df = pd.DataFrame(data=data.reshape((1, len(data))), columns=all_names)
+        df = pd.DataFrame.from_dict(data_dict)
+        #df = pd.DataFrame(data=np.zeros((1, len(data))), columns=list(all_names))
+        #df.iloc[0] = Series()
         #df = df.apply(pd.to_numeric, errors='ignore')
         return df          
             
