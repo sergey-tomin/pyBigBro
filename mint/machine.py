@@ -9,9 +9,11 @@ from mint.xfel_interface import XFELMachineInterface
 import pandas as pd 
 import numpy as np
 import time
+from datetime import datetime
 import scipy.misc
 import os
 import pickle
+
 
 class Machine:
     def __init__(self, snapshot):
@@ -80,6 +82,39 @@ class Machine:
             all_names = np.append(all_names, names)
         return data, all_names
 
+    def get_phase_shifters(self, data, all_names):
+        for sec_id in self.snapshot.phase_shifter_sections:
+            try:
+                phase_shifters = np.array(self.mi.get_value("XFEL.FEL/WAVELENGTHCONTROL." + sec_id + "/BPS.*." + sec_id + "/GAP.OFFSET"))
+            except Exception as e:
+                print("ERROR: magnets: ", sec_id, e)
+                return [], []
+            vals = phase_shifters[:, 1].astype(np.float)
+
+            names = [name for name in phase_shifters[:, 4]]
+            data = np.append(data, vals)
+            all_names = np.append(all_names, names)
+        return data, all_names
+
+    def get_undulators(self, data, all_names):
+        for sec_id in self.snapshot.undulators:
+            try:
+                if sec_id in ["SA1", "SA2"]:
+                    undulators = np.array(self.mi.get_value("XFEL.FEL/WAVELENGTHCONTROL." + sec_id + "/U40.*." + sec_id + "/GAP"))
+                else:
+                    undulators = np.array(
+                        self.mi.get_value("XFEL.FEL/WAVELENGTHCONTROL." + sec_id + "/U68.*." + sec_id + "/GAP"))
+            except Exception as e:
+                print("ERROR: magnets: ", sec_id, e)
+                return [], []
+            vals = undulators[:, 1].astype(np.float)
+
+            names = [name for name in undulators[:, 4]]
+            data = np.append(data, vals)
+            all_names = np.append(all_names, names)
+        return data, all_names
+
+
     def get_channels(self, data, all_names):
         data = list(data)
         for ch in self.snapshot.channels:
@@ -88,16 +123,10 @@ class Machine:
             except Exception as e:
                 print("id: " + ch + " ERROR: " + str(e))
                 val = np.nan
-            #print(ch, type(val))
-            #if np.size(val) > 1:
-            #    data = np.append(data, np.array([val], dtype=object))
-            #else:
-            #    data = list(data)
-            #    data = np.append(data, val)
             data.append(val)
             all_names = np.append(all_names, ch)
         return data, all_names
-    
+
     def get_images(self, data, all_names):
         for i, ch in enumerate(self.snapshot.images):
             folder = self.snapshot.image_folders[i]
@@ -106,19 +135,21 @@ class Machine:
             except Exception as e:
                 print("id: " + ch + " ERROR: " + str(e))
                 img = None
-            
+
             cam_name = ch.split("/")[-2]
-            
-            name = cam_name + "-" + time.strftime("%Y%m%d-%H%M%S") 
+            #datetime.utcnow().strftime('%Y%m%d_%H%M%S_%f')[:-3]
+            #name = cam_name + "-" + time.strftime("%Y%m%d-%H%M%S")
+            name = cam_name + "-" + datetime.utcnow().strftime('%Y%m%d_%H%M%S_%f')[:-3]
+
             filename = name + ".png"
             path = folder + os.sep + filename
             path_pcl = folder + os.sep + name + ".pcl"
-            if img is not None: 
+            if img is not None:
                 scipy.misc.imsave(path, img)
                 with open(path_pcl, 'wb') as f:
                     # Pickle the 'data' dictionary using the highest protocol available.
                     pickle.dump(img, f)
-                
+
             else:
                 path = None
             #print(data)
@@ -127,7 +158,7 @@ class Machine:
             data.append(path)
             all_names = np.append(all_names, ch)
         return data, all_names
-    
+
     def get_machine_snapshot(self):
 
         if not self.is_machine_online():
@@ -144,6 +175,12 @@ class Machine:
         data, all_names = self.get_magnets(data, all_names)
         if len(data) == 0:
             return None
+        data, all_names = self.get_phase_shifters(data, all_names)
+        if len(data) == 0:
+            return None
+        data, all_names = self.get_undulators(data, all_names)
+        if len(data) == 0:
+            return None
         data, all_names = self.get_channels(data, all_names)
         if len(data) == 0:
             return None
@@ -154,18 +191,10 @@ class Machine:
         print(len(data), len(all_names))
         data_dict = {}
         for name, d in zip(all_names, data):
-            #print(name)
             data_dict[name] = [d]
-            
-        #print(data_dict)
-        #data = np.array(data)
-        #df = pd.DataFrame(data=data.reshape((1, len(data))), columns=all_names)
+
         df = pd.DataFrame(data_dict, columns=data_dict.keys())
-        #df = pd.DataFrame.from_dict(data_dict)
-        #df = pd.DataFrame(data=np.zeros((1, len(data))), columns=list(all_names))
-        #df.iloc[0] = Series()
-        #df = df.apply(pd.to_numeric, errors='ignore')
-        return df          
+        return df
             
     
 

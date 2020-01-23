@@ -1,6 +1,6 @@
 """
 Created on 20.11.2019
-@author: Igor Zagorodnov
+@author: Igor Zagorodnov and Sergey Tomin
 """
 
 import matplotlib.pyplot as plt

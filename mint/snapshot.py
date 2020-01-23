@@ -145,6 +145,9 @@ class SnapshotDB:
     def __init__(self, filename="test.p"):
         self.df = pd.DataFrame()
         self.filename = filename
+        self.orbit_sections = {}
+        self.magnet_sections = {}
+        self.channels = []
     
     def add(self, df):
         self.df = self.df.append(df)
@@ -156,45 +159,47 @@ class SnapshotDB:
     
     def load(self):
         self.df = pd.read_pickle(self.filename)
+        self.analyse()
         return self.df
 
     def analyse(self):
-        orbit_sections = {}
-        magnet_sections = {}
-        channels = []
+
+        self.orbit_sections = {}
+        self.magnet_sections = {}
+        self.channels = []
+
         for col in self.df.columns:
             if "/" not in col and col != "timestamp":
 
                 if ".X" in col or ".Y" in col:
                     #print(col)
                     sec_id = col.split(".")[-2]
-                    if sec_id not in orbit_sections:
-                        orbit_sections[sec_id] = [col]
+                    if sec_id not in self.orbit_sections:
+                        self.orbit_sections[sec_id] = [col]
                     else:
-                        orbit_sections[sec_id].append(col)
+                        self.orbit_sections[sec_id].append(col)
                 else:
                     sec_id = col.split(".")[-1]
-                    if sec_id not in magnet_sections:
-                        magnet_sections[sec_id] = [col]
+                    if sec_id not in self.magnet_sections:
+                        self.magnet_sections[sec_id] = [col]
                     else:
-                        magnet_sections[sec_id].append(col)
+                        self.magnet_sections[sec_id].append(col)
             else:
-                channels.append(col)
+                self.channels.append(col)
 
-        if len(orbit_sections) > 0:
+    def get_orbits(self, section_id):
+        if self.orbit_sections is None:
+            print("use .load() or .analyse() before")
+            return
+        if section_id in self.orbit_sections:
+            x_bpm_names = [bpm for bpm in self.orbit_sections[section_id] if ".X" in bpm]
+            y_bpm_names = [bpm for bpm in self.orbit_sections[section_id] if ".Y" in bpm]
+            dfx = self.df[x_bpm_names].dropna(axis=1)
+            dfy = self.df[y_bpm_names].dropna(axis=1)
+            return dfx, dfy
+        else:
+            print("section_id is not in ", self.orbit_sections.keys())
 
-            for sec in orbit_sections:
-                names = orbit_sections[sec]
-                x_plane = [name for name in names if sec + ".X" in name]
-                print(x_plane)
-                y_plane = [name for name in names if sec + ".Y" in name]
-                pos = [name.split(".")[-3] for name in x_plane]
-                #for plane in [".X.", ".Y."]:
-                #    for name in names:
-                #        parts = name.split(".")
-        print(orbit_sections)
-        #print(magnet_sections)
-        #print(channels)
 
     
     def __str__(self):
