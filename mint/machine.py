@@ -6,6 +6,7 @@ Machine class to get machine snapshot
 """
 
 from mint.xfel_interface import XFELMachineInterface
+from mint.devices import Device
 import pandas as pd 
 import numpy as np
 import time
@@ -13,6 +14,27 @@ from datetime import datetime
 import scipy.misc
 import os
 import pickle
+
+
+class MPS(Device):
+    def __init__(self, eid=None, server="XFEL", subtrain="SA1"):
+        super(MPS, self).__init__(eid=eid)
+        self.mi = XFELMachineInterface()
+        self.subtrain = subtrain
+        self.server = server
+
+    def beam_off(self):
+        self.mi.set_value(self.server + ".UTIL/BUNCH_PATTERN/CONTROL/BEAM_ALLOWED", 0)
+
+    def beam_on(self):
+        self.mi.set_value(self.server + ".UTIL/BUNCH_PATTERN/CONTROL/BEAM_ALLOWED", 1)
+
+    def num_bunches_requested(self, num_bunches=1):
+        self.mi.set_value(self.server + ".UTIL/BUNCH_PATTERN/CONTROL/NUM_BUNCHES_REQUESTED_1", num_bunches)
+    
+    def is_beam_on(self):
+        val = self.mi.get_value(self.server + ".UTIL/BUNCH_PATTERN/CONTROL/BEAM_ALLOWED")
+        return val
 
 
 class Machine:

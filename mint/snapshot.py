@@ -194,8 +194,8 @@ class SnapshotDB:
         if section_id in self.orbit_sections:
             x_bpm_names = [bpm for bpm in self.orbit_sections[section_id] if ".X" in bpm]
             y_bpm_names = [bpm for bpm in self.orbit_sections[section_id] if ".Y" in bpm]
-            dfx = self.df[x_bpm_names].dropna(axis=1)
-            dfy = self.df[y_bpm_names].dropna(axis=1)
+            dfx = self.df[x_bpm_names].dropna(how="all", axis=1)
+            dfy = self.df[y_bpm_names].dropna(how="all", axis=1)
             return dfx, dfy
         else:
             print("section_id is not in ", self.orbit_sections.keys())

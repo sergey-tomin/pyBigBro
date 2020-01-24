@@ -75,7 +75,7 @@ class XFELMachineInterface(MachineInterface):
         :return: None
         """
         #print("SETTING")
-        #pydoocs.write(channel, val)
+        pydoocs.write(channel, val)
         return
 
     def get_raw_value(self, channel):

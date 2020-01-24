@@ -55,8 +55,10 @@ class TDSImage:
             if not self.read_image_from_pickle():
                 print("No image")
                 return
-
-        img0 = self.raw_image.astype(np.double) - self.bg_image
+        if self.bg_image is not None:
+            img0 = self.raw_image.astype(np.double) - self.bg_image
+        else:
+            img0 = self.raw_image.astype(np.double)
         img0 = np.flipud(img0)
         img1 = ndimage.uniform_filter(img0, size=self.unif_filter_size)
         (ny, nx) = img0.shape
