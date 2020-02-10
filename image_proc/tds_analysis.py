@@ -500,39 +500,12 @@ def extract_parameters(image_dict, parent_dir, tds_img):
     l2_chirps = list(image_dict.keys())
     print(l2_chirps)
     img_paths = [image_dict[chirp]["raw"] for chirp in l2_chirps]
-    blength = []
-    len_err = []
-    amps_fit = []
-    amps_fit_err = []
-    amps = []
-    amps_err = []
     data_extract = {}
     for i, key  in enumerate(image_dict):
 
-        # tds_img = TDSImage()
-        # tds_img.dx_px = 5.436e-6 / 0.0038  # ps / px, pixel size in horizontal direction
-        # tds_img.dy_px = 1.0 / 49.1  # MeV / px, pixel size in vertical direction
-        # tds_img.noise_thresh = 0.1
-        # tds_img.unif_filter_size = 150
-        # tds_img.noise_proj_thresh = 0.1
-        # tds_img.shear = -0.055 * 0
-        # tds_img.fliplr = False
-        # tds_img.bg_image = bg_img
         filenames = [str(parent_dir) + "/" + img_path[2:-3] + "pcl" for img_path in img_paths[i]]
-        #df_tmp = db.df[db.df["XFEL.RF/LLRF.SUMVOLTAGE_CTRL/L1/SUMVOLTAGE.CHIRP.SP.1"] == l2_chirps[i]]
-        print("filenames = ", filenames)
 
-        # print("I1 V = ", df_tmp["XFEL.RF/LLRF.SUMVOLTAGE_CTRL/I1/SUMVOLTAGE.AMPLITUDE.SP.1"])
-        # print("I1 chirp = ", df_tmp["XFEL.RF/LLRF.SUMVOLTAGE_CTRL/I1/SUMVOLTAGE.CHIRP.SP.1"])
-        # print("I1 curv = ", df_tmp["XFEL.RF/LLRF.SUMVOLTAGE_CTRL/I1/SUMVOLTAGE.CURVATURE.SP.1"])
-        # print("I1 third = ", df_tmp["XFEL.RF/LLRF.SUMVOLTAGE_CTRL/I1/SUMVOLTAGE.THIRDDERIVATIVE.SP.1"])
-        #
-        # print("L1 V = ", df_tmp["XFEL.RF/LLRF.SUMVOLTAGE_CTRL/L1/SUMVOLTAGE.AMPLITUDE.SP.1"])
-        # print("L1 chirp = ", df_tmp["XFEL.RF/LLRF.SUMVOLTAGE_CTRL/L1/SUMVOLTAGE.CHIRP.SP.1"])
-        #
-        # print("L2 V = ", df_tmp["XFEL.RF/LLRF.SUMVOLTAGE_CTRL/L2/SUMVOLTAGE.AMPLITUDE.SP.1"])
-        # print("L2 chirp = ", df_tmp["XFEL.RF/LLRF.SUMVOLTAGE_CTRL/L2/SUMVOLTAGE.CHIRP.SP.1"])
-        # print("L1 phase = ", df_tmp["XFEL.RF/LLRF.CONTROLLER/VS.A2.L1/PHASE.SAMPLE"])
+
         tds_img.raw_image = tds_img.load_images(filenames)
         tds_img.process()
         # tds_img.plot_all(title="L1 chirp: " + str(np.round(l2_chirps[i], 2)), figsize=(11, 9))
@@ -547,16 +520,8 @@ def extract_parameters(image_dict, parent_dir, tds_img):
             a.append(A_fit)
             c_max.append(np.max(current))
 
-        # blength.append(np.mean(sigmas))
-        # len_err.append(np.std(sigmas))
-        #
-        # amps_fit.append(np.mean(a))
-        # amps_fit_err.append(np.std(a))
-        #
-        # amps.append(np.mean(c_max))
-        # amps_err.append(np.std(c_max))
+
         data_extract[key] = {"sigma_mean":np.mean(sigmas), "sigma_std":np.std(sigmas),
                                       "fit_ampl_mean":np.mean(a), "fit_ampl_std":np.std(a),
                                       "ampl_mean": np.mean(c_max), "ampl_std": np.std(c_max)}
-        # tds_img.plot_all(title=f"L2 chirp = {np.round(chirp, 2)}")
     return data_extract
