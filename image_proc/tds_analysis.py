@@ -498,7 +498,6 @@ def process_tds_image(filename, bg_image, dx_px, dy_px, charge, noise_thresh=0.1
 
 def extract_parameters(image_dict, parent_dir, tds_img):
     l2_chirps = list(image_dict.keys())
-    print(l2_chirps)
     img_paths = [image_dict[chirp]["raw"] for chirp in l2_chirps]
     data_extract = {}
     for i, key  in enumerate(image_dict):

@@ -346,8 +346,9 @@ class SnapshotDB:
                 ax_y.plot(y_orbits[leg] - y_orbits[list(y_orbits.keys())[0]], label=str(leg))
             else:
                 ax_y.plot(y_orbits[leg], label=str(leg))
-        plt.xticks(np.arange(len(y_bpm_names)),
-                   y_bpm_names)
+        bpm_names = [bpm.replace(".Y", "") for bpm in y_bpm_names]
+        plt.xticks(np.arange(len(bpm_names)),
+                   bpm_names)
         plt.xticks(rotation=90)
         plt.ylabel("Y [mm]")
         plt.legend()
