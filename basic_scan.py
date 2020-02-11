@@ -11,6 +11,7 @@ from mint.machine import Machine
 from mint.snapshot import Snapshot, SnapshotDB
 import basic_config
 import time
+from tds_images.tds_analysis import *
 
 # DOOCS channel to scan. Fake channel
 doocs_ch = "XFEL/DOOCS/CHANNEL/A.SP"
@@ -59,4 +60,34 @@ db.save()
 
 pydoocs.write(doocs_ch, x_0)
 
+# plotting
+
+# plot one doocs channel against another
+db.plot(x=doocs_ch, y=["XFEL.MAGNETS/MAGNET.ML/SOLB.23.I1/CURRENT.SP",
+                        "XFEL.DIAG/BEAM_ENERGY_MEASUREMENT/LH/ENERGY.ALL"])
+
+# plot orbit with labeling by parameter if scanning channel
+db.plot_orbit(section_id="I1",  legend_item=doocs_ch)
+
+# images
+
+parent_dir = "/../../path to directory where are images"
+
+bg_img = db.get_background(parent_dir, cam_channel="XFEL.DIAG/CAMERA/TDS_CAMERA")
+
+image_dict = db.get_data(x=doocs_ch, y="XFEL.DIAG/CAMERA/TDS_CAMERA", beam_on=True, calc_moments=False)
+
+tds_img = TDSImage()
+tds_img.dx_px = 5.436e-6 / 0.0038       # ps / px, pixel size in horizontal direction
+tds_img.dy_px = 1.0 / 49.1              # MeV / px, pixel size in vertical direction
+tds_img.noise_thresh = 0.1
+tds_img.unif_filter_size = 150
+tds_img.noise_proj_thresh = 0.1
+tds_img.shear = -0.055 * 0
+tds_img.fliplr = False
+tds_img.bg_image = bg_img
+
+
+# extract beam current, length, ... from TDS images and show processed images if needed
+data_extract = extract_parameters(image_dict, parent_dir, tds_img, show_img=True)
 

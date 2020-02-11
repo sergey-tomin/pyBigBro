@@ -496,7 +496,7 @@ def process_tds_image(filename, bg_image, dx_px, dy_px, charge, noise_thresh=0.1
     return img, x, y, sigx, I, roE, dE_m, dE_sigma, inds
 
 
-def extract_parameters(image_dict, parent_dir, tds_img):
+def extract_parameters(image_dict, parent_dir, tds_img, show_img=False):
     l2_chirps = list(image_dict.keys())
     img_paths = [image_dict[chirp]["raw"] for chirp in l2_chirps]
     data_extract = {}
@@ -507,8 +507,9 @@ def extract_parameters(image_dict, parent_dir, tds_img):
 
         tds_img.raw_image = tds_img.load_images(filenames)
         tds_img.process()
-        # tds_img.plot_all(title="L1 chirp: " + str(np.round(l2_chirps[i], 2)), figsize=(11, 9))
-        # plt.show()
+        if show_img:
+            tds_img.plot_all(title="L1 chirp: " + str(np.round(l2_chirps[i], 2)), figsize=(11, 9))
+            plt.show()
         sigmas = []
         a = []
         c_max = []
