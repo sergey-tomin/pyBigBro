@@ -11,6 +11,7 @@ import pickle
 import os
 import matplotlib.pyplot as plt
 
+
 class Snapshot():
     def __init__(self):
         self.sase_sections = ["SA1", "SA2", "SA3"]
@@ -298,6 +299,7 @@ class SnapshotDB:
             return None
         x_bpm_names = [bpm for bpm in self.orbit_sections[section_id] if ".X" in bpm]
         y_bpm_names = [bpm for bpm in self.orbit_sections[section_id] if ".Y" in bpm]
+        
         x_orbits = {}
         y_orbits = {}
         for leg in np.unique(np_leg):
@@ -353,6 +355,62 @@ class SnapshotDB:
         plt.ylabel("Y [mm]")
         plt.legend()
         plt.show()
+        
+    def dict_append(self, dict1, dict2):
+        dict3 = {}
+        for key in dict2:
+            data2 = dict2[key]
+            if key in dict1:
+                data1 = dict1[key]
+            else:
+                data1 = []
+            dict3[key] = np.append(data1, data2)
+        return dict3
+    
+    
+    def plot_orbits(self, section_ids, legend_item=None, subtract_first=False, halve=False):
+        x_orbits_ids, y_orbits_ids, x_bpm_names_ids, y_bpm_names_ids = {}, {}, [], []
+        for sec_id in section_ids:
+            x_orbits, y_orbits, x_bpm_names, y_bpm_names = self.get_orbit_dicts(section_id=sec_id, legend_item=legend_item)
+            x_orbits_ids = self.dict_append(x_orbits_ids, x_orbits)
+            y_orbits_ids = self.dict_append(y_orbits_ids, y_orbits)
+                
+            x_bpm_names_ids = np.append(x_bpm_names_ids, x_bpm_names)
+            y_bpm_names_ids = np.append(y_bpm_names_ids, y_bpm_names)
+            
+            
+        fig = plt.figure(10, figsize=(9, 7))
+        st = fig.suptitle("orbit", fontsize="x-large")
+        ax_x= plt.subplot(211)
+        for i, leg in enumerate(x_orbits_ids):
+            if halve and i%2 == 1:
+                continue
+            if subtract_first:
+                ax_x.plot(x_orbits_ids[leg] - x_orbits_ids[list(x_orbits_ids.keys())[0]], label=str(leg))
+            else:
+                ax_x.plot(x_orbits_ids[leg], label=str(leg))
+
+        plt.setp(ax_x.get_xticklabels(), visible=False)
+        plt.ylabel("X [mm]")
+        plt.legend()
+
+        ax_y = plt.subplot(212, sharex=ax_x)
+        for i, leg in enumerate(y_orbits_ids):
+            if halve and i%2 == 1:
+                continue
+            if subtract_first:
+                ax_y.plot(y_orbits_ids[leg] - y_orbits_ids[list(y_orbits_ids.keys())[0]], label=str(leg))
+            else:
+                ax_y.plot(y_orbits_ids[leg], label=str(leg))
+        bpm_names = [bpm.replace(".Y", "") for bpm in y_bpm_names_ids]
+        plt.xticks(np.arange(len(bpm_names)),
+                   bpm_names)
+        plt.xticks(rotation=90)
+        plt.ylabel("Y [mm]")
+        plt.legend()
+        plt.show()
+        
+        
 
     def __str__(self):
         return self.df.__str__()

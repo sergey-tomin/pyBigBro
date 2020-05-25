@@ -11,7 +11,8 @@ import pandas as pd
 import numpy as np
 import time
 from datetime import datetime
-import scipy.misc
+import matplotlib
+
 import os
 import pickle
 
@@ -167,7 +168,8 @@ class Machine:
             path = folder + os.sep + filename
             path_pcl = folder + os.sep + name + ".pcl"
             if img is not None:
-                scipy.misc.imsave(path, img)
+                # scipy.misc.imsave(path, img)
+                matplotlib.image.imsave(path, img)
                 with open(path_pcl, 'wb') as f:
                     # Pickle the 'data' dictionary using the highest protocol available.
                     pickle.dump(img, f)
@@ -210,7 +212,7 @@ class Machine:
         if len(data) == 0:
             print("get_images bad")
             return None
-        print(len(data), len(all_names))
+        #print(len(data), len(all_names))
         data_dict = {}
         for name, d in zip(all_names, data):
             data_dict[name] = [d]
