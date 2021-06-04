@@ -11,7 +11,6 @@ import pickle
 import os
 import matplotlib.pyplot as plt
 
-
 class Snapshot():
     def __init__(self):
         self.sase_sections = ["SA1", "SA2", "SA3"]
