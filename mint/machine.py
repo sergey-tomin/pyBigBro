@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 import time
 from datetime import datetime
+import imageio
 import matplotlib
 
 import os
@@ -67,8 +68,8 @@ class Machine:
                 alarm_status.append(True)
             else:
                 alarm_status.append(False)
-        if np.array(alarm_status).any():
-            return True
+        if not np.array(alarm_status).all():
+            return False
         return True
 
     def get_orbit(self, data, all_names):
@@ -169,6 +170,7 @@ class Machine:
             path_pcl = folder + os.sep + name + ".pcl"
             if img is not None:
                 # scipy.misc.imsave(path, img)
+                #imageio.imwrite(path, img)
                 matplotlib.image.imsave(path, img)
                 with open(path_pcl, 'wb') as f:
                     # Pickle the 'data' dictionary using the highest protocol available.
@@ -183,13 +185,29 @@ class Machine:
             all_names = np.append(all_names, ch)
         return data, all_names
 
-    def get_machine_snapshot(self):
+    def wait_machine_online(self):
+    
+        if self.is_machine_online():
+            return 
+            
+        while True:
+            if self.is_machine_online():
+                print("machine is BACK. Wait 5 sec for recovering and continue")
+                time.sleep(5)
+                break
+            else:
+                time.sleep(3)
+                print("machine is OFFLINE. Sleep 3 sec ..")
 
-        if not self.is_machine_online():
-            print("machine is not online. wait 3 sec ...")
-            time.sleep(2)
-            return None
+    def get_machine_snapshot(self, check_if_online=False):
 
+        #if not self.is_machine_online():
+        #    print("machine is not online. wait 3 sec ...")
+        #    time.sleep(2)
+        #    return None
+        if check_if_online:
+        
+            self.wait_machine_online()
 
         data = np.array([time.time()], dtype=object)
         all_names = np.array(["timestamp"])
